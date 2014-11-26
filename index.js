@@ -35,7 +35,7 @@ Bomb.prototype.arm = function (code, duration) {
 		clearTimeout(this.fuse);
 		this.fuse = null;
 
-		this.emit('disarmed', code, Date.now() - this.start);
+		this.emit('disarmed', code, Date.now() - start);
 	};
 };
 

@@ -49,4 +49,21 @@ describe('explodes', function () {
 		testBomb.arm(testCode);
 		testBomb.arm(testCode);
 	});
+
+	it('emits disarm with the correct duration', function (done) {
+		var testBomb = new Bomb();
+		var testCode = 'the right code';
+
+		testBomb.once('disarmed', function (code, duration) {
+			assert.strictEqual(code, testCode);
+			assert(duration >= 50);
+
+			done();
+		});
+
+		testBomb.arm(testCode);
+		setTimeout(function () {
+			testBomb.disarm(testCode);
+		}, 50);
+	});
 });
