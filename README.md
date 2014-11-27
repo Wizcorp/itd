@@ -14,14 +14,22 @@ Arm your bomb with a `code` that is required to `disarm` it. `duration` is an op
 ### `disarm( code )`
 The only way to stop your bomb from exploding is to `disarm` it using the `code` it was armed with. If you try to disarm it using a different code, it will explode.
 
+## Properties
+
+### `code`
+The code the bomb was armed with.
+
+### `fuse`
+The timeout for the bomb.
+
 ## Events
 
 ### `exploded` ( code, duration, reason )
 
 Emitted when the bomb explodes. There are three reasons for why a bomb will explode:
 * `timeOut`: `duration` milliseconds elapsed after calling `arm` without `disarm` being called.
-* `alreadyArmed`: `disarm` was not called before `arm` was called.
-* `wrongCode`: `disarm` was called with a different code than when `arm` was called.
+* `alreadyArmed`: `arm` was called with `code` before `disarm` was called.
+* `wrongCode`: `disarm` was called with `code`, which was different than the one the bomb was armed with.
 
 ### `disarmed` ( code, duration )
 
@@ -40,11 +48,16 @@ function fail(msg) {
 }
 
 testBomb.on('exploded', function (code, duration, reason) {
-	if (reason === 'timeOut') {
-		return fail('Step:' + code + 'failed to complete in' + duration + 'msec');
+	switch (reason) {
+	'timeOut':
+		return fail('Step: ' + code + ' failed to complete in' + duration + 'msec');
+	'wrongCode':
+		return fail('Step: ' + code + ' completed while ' + testBomb.code + ' was active');
+	'alreadyArmed':
+		return fail('Step: ' + code + ' started while ' + testBomb.code + ' was active');
+	default:
+		fail('Bomb exploded for unknown reason'); // This should never happen.
 	}
-
-	return fail('Step: ' + code + ' was completed out of order');
 });
 
 testBomb.on('disarmed', function (name, duration) {

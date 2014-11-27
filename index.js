@@ -10,16 +10,26 @@ function Bomb() {
 inherits(Bomb, EventEmitter);
 
 Bomb.prototype.arm = function (code, duration) {
+	if (!code) {
+		throw new Error('You must arm your bomb with a code.');
+	}
+
 	var that = this;
 	var start = Date.now();
 
-	function explode(reason) {
+	function explode(reason, code) {
+		clearTimeout(that.fuse);
+		that.fuse = null;
+		code = code || that.code;
+
 		that.emit('exploded', code, Date.now() - start, reason);
 	}
 
 	if (this.fuse) {
-		return explode('alreadyArmed');
+		return explode('alreadyArmed', code);
 	}
+
+	this.code = code;
 
 	duration = duration || DEFAULT_DURATION;
 
@@ -27,15 +37,19 @@ Bomb.prototype.arm = function (code, duration) {
 		explode('timeOut');
 	}, duration);
 
-	this.disarm = function (disarmCode) {
-		if (disarmCode !== code) {
-			return explode('wrongCode');
+	this.disarm = function (code) {
+		if (!code) {
+			throw new Error('You must disarm your bomb with a code.');
 		}
 
-		clearTimeout(this.fuse);
-		this.fuse = null;
+		if (code !== that.code) {
+			return explode('wrongCode', code);
+		}
 
-		this.emit('disarmed', code, Date.now() - start);
+		clearTimeout(that.fuse);
+		that.fuse = null;
+
+		that.emit('disarmed', code, Date.now() - start);
 	};
 };
 
